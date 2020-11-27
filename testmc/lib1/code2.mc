@@ -3,7 +3,7 @@
 //a=a+1
 //a++;
 //++a;
-a=b=c=d
+a=b=c+1=d
 //(a? b   : c)
 call(1, 2, 3).id
 System.out.println(tab + "\t" + op);

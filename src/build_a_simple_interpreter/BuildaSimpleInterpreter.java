@@ -492,21 +492,6 @@ class Lexer {
 		return exp;
 	}
 
-	/** 解析出赋值操作符(右到左) */
-	// Ast parseOpAssign() {
-	// 	Ast item = parseOpBinary();
-	// 	if (!maybeOneof(assignOps))
-	// 		return item;
-	// 	OpBinary ass = new OpBinary(item);
-	// 	OpBinary root = ass;
-	// 	do {
-	// 		ass.op = token;
-	// 		ass.right = new OpBinary(parseOpBinary());
-	// 		ass = (OpBinary) (ass.right);
-	// 	} while (maybeOneof(assignOps));
-	// 	return root;
-	// }
-
 	/** 解析出二元操作符(左到右) */
 	Ast parseOpBinary() {
 		ArrayList<Ast> stack = new ArrayList<>();
