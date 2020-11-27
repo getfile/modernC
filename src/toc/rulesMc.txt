@@ -1,0 +1,159 @@
+// 文法格式:
+//		{}零或多个, []零或一个, ()一个或多个
+//		能找到规则的为非终结符, 没有规则的为终结符
+// 参考文法之一: 大写为终结符; 标点符号用大写单词表示; ()* 零或多 ()+ 一或多 ()? 零或一
+//
+// 设计原则
+//		执行路径如果为循环路径, 则该路径必须消耗至少一个终结符, 否则会死循环
+//		语句中可以包含表达式, 但是表达式中不能包含语句
+//		一些形式可能语法上可行, 但是语义上不行. 这需要在语义阶段排除
+
+type
+	id
+
+program
+	{importDef}	{typeDef}
+
+//导入外部类型
+importDef
+	import id {. id} ;
+
+//类型定义
+typeDef
+	classDef
+	interfaceDef
+	enumDef
+
+//类类型定义
+classDef
+	class id [extends id] [implements id {, id}] { {varDef|funcDef} }
+
+//接口类型定义
+interfaceDef
+	interface id [extends id {, id}] { {type id ( [parameter] ) ;} }
+
+//枚举类型定义
+enumDef
+	enum id { (id = num ,) }
+	
+//函数类型定义
+funcTypeDef
+	func type ( type {, type} ) id ;
+
+//变量定义
+varDef
+	type id [= exp] {, id [= exp]} ;
+
+//函数定义
+funcDef
+	type id ( [parameter] ) block
+
+//函数参数集
+parameter
+	type id [=exp] {, type id [= exp]}
+
+//代码块, 允许嵌套
+block
+	{ {varDef|stmt|block} }
+
+stmt
+	if exp block [else block]
+	while exp block
+	do block while exp ;
+	for ( varDef ; exp ; exp ) block
+	break ;
+	continue ;
+	return exp ;
+	exp ;
+
+
+//============================================= 形式1: 表达式由 三元操作符, 二元操作符, 一元操作符, 操作数 组成
+exp
+	item {binaryOp item}
+	
+item
+	[unaryOp1] factor
+	factor [unaryOp2]				
+
+//操作数
+factor
+	id
+	num
+	str
+	( exp )
+	( exp ? exp : exp )		//三元 条件运算符
+	id ( exp {, exp} )		//函数对象调用
+	id ([ exp ])			//映射或数组对象中取元素
+	id . id					//结构对象中取成员
+
+//三元操作符
+tripOp
+	exp ? exp : exp
+	
+// http://c.biancheng.net/view/285.html 运算优先顺序从上到下, 从左到右
+// https://www.cnblogs.com/xiehy/archive/2010/02/04/1663825.html 算数运算符>关系运算符>逻辑运算符>赋值运算符
+// 二元操作符
+binaryOp
+	** 						//幂运算 (大于1是乘方, 小于1是开方)
+	* / %
+	+ - 
+	>> <<
+	> >= < <= 
+	== != 
+	& 
+	^
+	| 
+	&& 
+	|| 
+	= += -= *= /= %= &= ^= |= >>= <<=		//从右到左
+	,
+
+// 一元操作符(前缀)
+unaryOp1
+	! ~ - ++ -- 			//从右到左
+
+// 一元操作符(后缀)
+unaryOp2
+	? ++ --					//从左到右 (?表示对象如果为空则不执行后续操作)
+	( typeid )				//类型转换
+
+
+
+//============================================= 形式2
+exp
+	id
+	num
+	str
+	( exp )
+	id ( exp {, exp} )			//函数对象调用 (参数, 参数, ...)
+	id ([ exp ])				//映射或数组对象中取元素[下标][下标]...
+	id . id						//结构对象中取成员
+	[opUnaryPre] exp			//一元运算
+	exp [opUnaryPost]			//一元运算
+	exp opBinary exp			//二元运算
+	exp ? exp : exp				//三元运算
+	exp opAssign exp			//赋值运算
+	exp , exp					//并列运算
+
+//============================================= 形式3: 非左递归形式
+exp
+	exp1 {, exp1}				//并列操作符, 左到右, (,)
+exp1
+	exp3 {opAssign exp3}		//赋值操作符, 右到左, (= += -= *= /= %= >>= <<=)
+exp3
+	exp4 {opBinary exp4}		//二元操作符, 左到右, (* / %)(+ -)(>> <<)(> >= < <=)(== !=)(&)(^)(|)(&&)(||) 
+exp4
+	exp5 [opUnaryPost]			//一元后缀, 左到右, (++ --), 表达式计算后运行
+	[opUnaryPre] exp5			//一元前缀, 右到左, (! ~ - ++ --), 表达式计算前运行
+exp5
+	exp6 ( idType )				//类型转换 (类型参数)
+	exp6 ( exp )				//函数对象调用 (参数, 参数, ...)
+	exp6 [ exp1 ]				//映射或数组对象中取元素[下标][下标]...
+	exp6 . id					//结构对象中取成员
+exp6
+	( exp )
+	( exp1 ? exp1 : exp1 )			//三元操作符, 为了清晰必须有括号围着
+	id
+	num
+	str
+

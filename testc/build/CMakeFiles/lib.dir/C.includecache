@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/projectCpp/compile/java/modernC/testc/color.c
+color.h
+D:/projectCpp/compile/java/modernC/testc/color.h
+
+D:/projectCpp/compile/java/modernC/testc/color.h
+

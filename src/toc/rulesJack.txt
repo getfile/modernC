@@ -1,0 +1,93 @@
+// A Jack program is a collection of classes, each appearing in a separate ﬁle.
+// The compilation unit is a class. A class is a sequence of tokens structured
+// 元符号 ()*零次或多次 ()?零次或一次 ()+一次或多次
+
+// Program structure -----------------------------------
+class
+	class className { classVarDec* subroutineDec* }
+classVarDec
+	static  type varName (, varName)* ;
+	field type varName (, varName)* ;
+type
+	int 
+	char 
+	boolean 
+	className
+subroutineDec
+	methodKind typeAndVoid subroutineName ( parameterList ) subroutineBody
+methodKind
+	constructor
+	function
+	method
+typeAndVoid
+	void
+	type
+parameterList
+	(type varName (, type varName)*)?
+subroutineBody
+	{ varDec* statements }
+varDec
+	var type varName (, varName)* ;
+className
+	identiﬁer
+subroutineName
+	identiﬁer
+varName
+	identiﬁer
+
+
+// Statements -----------------------------------
+statements
+	statement*
+statement
+	letStatement 
+	ifStatement 
+	whileStatement 
+	doStatement 
+	returnStatement
+letStatement
+	let varName ([ expression ])? = expression ;
+ifStatement
+	if ( expression ) { statements } (else { statements })?
+whileStatement
+	while ( expression ) { statements }
+doStatement
+	do subroutineCall ;
+returnStatement 
+	return expression? ;
+
+// Expressions -----------------------------------
+expression
+	term (op term)*
+term
+	integerConstant 
+	stringConstant 
+	keywordConstant 
+	varName 
+	varName [ expression ] 
+	subroutineCall 
+	( expression ) 
+	unaryOp term
+subroutineCall
+	subroutineName ( expressionList ) 
+	(className | varName) . subroutineName ( expressionList )
+expressionList
+	(expression (, expression)* )?
+op
+	+ 
+	- 
+	* 
+	/ 
+	& 
+	|	
+	< 
+	> 
+	=
+unaryOp
+	- 
+	~
+KeywordConstant
+	true 
+	false 
+	null 
+	this

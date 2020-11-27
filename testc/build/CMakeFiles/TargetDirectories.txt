@@ -1,0 +1,4 @@
+D:/projectCpp/compile/java/modernC/testc/build/CMakeFiles/app.dir
+D:/projectCpp/compile/java/modernC/testc/build/CMakeFiles/lib.dir
+D:/projectCpp/compile/java/modernC/testc/build/CMakeFiles/edit_cache.dir
+D:/projectCpp/compile/java/modernC/testc/build/CMakeFiles/rebuild_cache.dir

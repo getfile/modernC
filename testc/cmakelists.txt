@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.0.0)
+project(app)
+set(CMAKE_BUILD_TYPE Debug)
+
+add_library(lib SHARED color.c)
+
+link_libraries(lib)
+add_executable(app app.c)

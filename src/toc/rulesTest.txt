@@ -1,0 +1,118 @@
+// ====================================== 例子1
+Stm
+	Stm ; Stm
+	id := Exp
+	print ( ExpList )
+ExpList
+	Exp , ExpList
+	Exp
+Exp
+	id
+	num
+	Exp Binop Exp
+	( Stm , Exp )
+Binop
+	+
+	-
+	*
+	/
+
+
+// ====================================== 例子2
+expr
+	expr + term
+	expr - term
+	term
+term
+	term * factor
+	term / factor
+	factor
+factor
+	( expr )
+	num
+
+
+// ====================================== 例子3 是例子2消除左递归后的形式
+exp
+	term expTail
+expTail
+	+ term expTail
+	- term expTail
+term
+	unary termTail
+termTail
+	* unary termTail
+	/ unary termTail
+unary
+	factor
+	- factor
+factor
+	( exp )
+	num
+	id
+
+// ====================================== 例子4 是例子3简写形式
+exp
+	term {+|- term}
+term
+	unary {*|/ unary}
+unary
+	factor
+	- factor
+factor
+	( exp )
+	num
+	id
+
+
+// ====================================== 例子4 {}零次或多次, []零次或一次
+program 
+	{global_declaration}
+
+global_declaration 
+	enum_decl
+	variable_decl
+	function_decl
+
+enum_decl 
+	enum [id] { id [= num] {, id [= num]} }
+
+variable_decl 
+	type [*] id {, [*] id} ;
+
+function_decl 
+	type [*] id ( parameter_decl ) { body_decl }
+
+parameter_decl 
+	type [*] id {, type [*] id}
+
+type
+	int
+	char
+
+body_decl 
+	{variable_decl} {statement}
+
+statement 
+	non_empty_statement
+	empty_statement
+
+empty_statement
+	;
+
+non_empty_statement 
+	if_statement
+	while_statement
+	{ statement }
+	return expression
+	expression ;
+
+if_statement 
+	if ( expression ) statement [else non_empty_statement]
+
+while_statement 
+	while ( expression ) non_empty_statement
+
+
+
+

@@ -1,0 +1,70 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "java",
+			"name": "Debug (Launch) - Current File",
+			"request": "launch",
+			"mainClass": "${file}"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-App<tocCompiler>",
+			"request": "launch",
+			"mainClass": "App",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-BuildaSimpleInterpreter<tocCompiler>",
+			"request": "launch",
+			"mainClass": "build_a_simple_interpreter.BuildaSimpleInterpreter",
+			"projectName": "tocCompiler",
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-Project<tocCompiler>",
+			"request": "launch",
+			"mainClass": "build_a_simple_interpreter.Project",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-ArrayListToArrayMutableObjects<tocCompiler>",
+			"request": "launch",
+			"mainClass": "testJava.ArrayListToArrayMutableObjects",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-MainTest<tocCompiler>",
+			"request": "launch",
+			"mainClass": "testJava.MainTest",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-Order<tocCompiler>",
+			"request": "launch",
+			"mainClass": "testJava.Order",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-TreeMapTest<tocCompiler>",
+			"request": "launch",
+			"mainClass": "testJava.TreeMapTest",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "Debug (Launch)-WriteacInterpreter<tocCompiler>",
+			"request": "launch",
+			"mainClass": "write_a_c_interpreter.WriteacInterpreter",
+			"projectName": "tocCompiler"
+		}
+	]
+}

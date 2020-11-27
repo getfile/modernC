@@ -1,0 +1,52 @@
+//编译原理及实践(Tiny文法)
+//无key的对象为终结符, 有key的为非终结符
+//每一行制表符开头为一个产生式, 多行产生式为或关系
+
+program	: 
+	stmtSequence
+stmtSequence : 
+	stmtSequence ; statement
+	statement
+statement : 
+	ifStmt
+	repeatStmt
+	assignStmt
+	readStmt
+	writeStmt
+ifStmt : 
+	if exp then stmtSequence end
+	if exp then stmtSequence else stmtSequence end
+repeatStmt : 
+	repeat stmtSequence until exp
+assignStmt : 
+	identifier := exp
+readStmt : 
+	read identifier
+writeStmt : 
+	write exp
+exp : 
+	simpleExp comparisonOp simpleExp
+	simpleExp
+comparisonOp : 
+	<
+	=
+simpleExp : 
+	simpleExp addOp term
+	term
+addOp : 
+	+
+	-
+term : 
+	term mulOp factor
+	factor
+mulOp : 
+	*
+	/
+factor : 
+	( exp )
+	number
+	identifier
+
+
+
+	
