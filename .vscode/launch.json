@@ -6,6 +6,27 @@
 	"configurations": [
 		{
 			"type": "java",
+			"name": "CodeLens (Launch) - Tokens",
+			"request": "launch",
+			"mainClass": "build_a_simple_interpreter.Tokens",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - Run",
+			"request": "launch",
+			"mainClass": "build_a_simple_interpreter.Run",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - Token",
+			"request": "launch",
+			"mainClass": "build_a_simple_interpreter.Token",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
 			"name": "Debug (Launch) - Current File",
 			"request": "launch",
 			"mainClass": "${file}"
@@ -22,7 +43,7 @@
 			"name": "Debug (Launch)-BuildaSimpleInterpreter<tocCompiler>",
 			"request": "launch",
 			"mainClass": "build_a_simple_interpreter.BuildaSimpleInterpreter",
-			"projectName": "tocCompiler",
+			"projectName": "tocCompiler"
 		},
 		{
 			"type": "java",
