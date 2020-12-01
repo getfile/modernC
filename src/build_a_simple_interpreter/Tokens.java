@@ -61,6 +61,11 @@ public class Tokens {
 		preset.put("return", Token.Return);
 		preset.put("sizeof", Token.Sizeof);
 		preset.put("=", Token.Assign);
+		preset.put("+=", Token.AssignAdd);
+		preset.put("-=", Token.AssignSub);
+		preset.put("*=", Token.AssignMul);
+		preset.put("/=", Token.AssignDiv);
+		preset.put("%=", Token.AssignMod);
 		preset.put("?", Token.Question);
 		preset.put("||", Token.Lor);
 		preset.put("&&", Token.Land);
@@ -118,6 +123,11 @@ public class Tokens {
 		presetInv.put(Token.Return, "return");
 		presetInv.put(Token.Sizeof, "sizeof");
 		presetInv.put(Token.Assign, "=");
+		presetInv.put(Token.AssignAdd, "+=");
+		presetInv.put(Token.AssignSub, "-=");
+		presetInv.put(Token.AssignMul, "*=");
+		presetInv.put(Token.AssignDiv, "/=");
+		presetInv.put(Token.AssignMod, "%=");
 		presetInv.put(Token.Question, "?");
 		presetInv.put(Token.Lor, "||");
 		presetInv.put(Token.Land, "&&");

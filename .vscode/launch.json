@@ -6,6 +6,20 @@
 	"configurations": [
 		{
 			"type": "java",
+			"name": "CodeLens (Launch) - AWTDraw",
+			"request": "launch",
+			"mainClass": "testJava.AWTDraw",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
+			"name": "CodeLens (Launch) - JavaDraw",
+			"request": "launch",
+			"mainClass": "testJava.JavaDraw",
+			"projectName": "tocCompiler"
+		},
+		{
+			"type": "java",
 			"name": "CodeLens (Launch) - Tokens",
 			"request": "launch",
 			"mainClass": "build_a_simple_interpreter.Tokens",

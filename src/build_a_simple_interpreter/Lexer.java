@@ -2,11 +2,8 @@ package build_a_simple_interpreter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 
-import util.FileUtil;
-
-class Lexer {
+public class Lexer {
 
 	char[] source;
 	int idx;
@@ -130,6 +127,7 @@ class Lexer {
 				}
 
 				tokenValue = "无法识别的标记: " + c; //无法识别的标点符号
+				System.out.println(lineIdx + ": " + tokenValue);
 				return Token.Error;
 			}
 		}
@@ -139,33 +137,37 @@ class Lexer {
 
 	/** 查看下一个词素 */
 	void peekToken() {
-		int old = idx;
+		int old = idx, oldl = lineIdx;
 		token = nextToken();
 		idx = old;
+		lineIdx = oldl;
 	}
 
 	/** 下一个词素是否为指定类型 */
 	boolean isbe(Token tt) {
-		int old = idx;
+		int old = idx, oldl = lineIdx;
 		token = nextToken();
 		idx = old;
+		lineIdx = oldl;
 		return (token == tt);
 	}
 
 	/** 下下一个词素是否为指定类型 */
 	boolean isbe(Token tt, int off) {
-		int old = idx;
+		int old = idx, oldl = lineIdx;
 		nextToken();
 		token = nextToken();
 		idx = old;
+		lineIdx = oldl;
 		return (token == tt);
 	}
 
 	/** 下一个词素是否为指定类型之一 */
 	boolean isOneof(Token[] list) {
-		int old = idx;
+		int old = idx, oldl = lineIdx;
 		token = nextToken();
 		idx = old;
+		lineIdx = oldl;
 		for (Token tt : list)
 			if (tt == token)
 				return true;
@@ -176,30 +178,33 @@ class Lexer {
 	void mustbe(Token tt) {
 		token = nextToken();
 		if (token != tt) {
-			tokenValue = "不是期待的词素类型 " + tt.toString();
+			tokenValue = lineIdx + ": " + "不是期待的词素类型 " + tt.toString();
 			token = Token.Error;
-			System.out.println(lineIdx + ": " + tokenValue + "\n" + token);
+			System.out.println(tokenValue + "\n" + token);
+			throw new Error();
 		}
 	}
 
 	/** 下一个词素或许为指定类型, 不是则回退 */
 	boolean maybe(Token tt) {
-		int old = idx;
+		int old = idx, oldl = lineIdx;
 		token = nextToken();
 		if (token == tt)
 			return true;
 		idx = old;
+		lineIdx = oldl;
 		return false;
 	}
 
 	/** 下一个词素或许为指定类型之一, 不是则回退 */
 	boolean maybeOneof(Token[] list) {
-		int old = idx;
+		int old = idx, oldl = lineIdx;
 		token = nextToken();
 		for (Token tt : list)
 			if (tt == token)
 				return true;
 		idx = old;
+		lineIdx = oldl;
 		return false;
 	}
 
@@ -211,12 +216,13 @@ class Lexer {
 		ArrayList<Import> imports = new ArrayList<>();
 		ArrayList<ClassDef> classes = new ArrayList<>();
 		idx = 0;
+		lineIdx = 1;
 		root = new Program();
 		do {
 			if (maybe(Token.Import))
 				imports.add(parseImport());
 			else if (maybe(Token.Class))
-				classes.add(parseClass());
+				classes.add(parseClassDef());
 			else
 				nextToken();
 		} while (token != Token.End && token != Token.Error);
@@ -229,45 +235,45 @@ class Lexer {
 	// import id {. id} ;
 	/* 解析-类型导入 */
 	Import parseImport() {
-		ArrayList<String> ids = new ArrayList<>();
+		ArrayList<Operand> ids = new ArrayList<>();
 
 		mustbe(Token.Identifier);
-		ids.add(tokenValue);
+		ids.add(new Operand(token, tokenValue));
 		while (maybe(Token.Dot)) {
 			mustbe(Token.Identifier);
-			ids.add(tokenValue);
+			ids.add(new Operand(token, tokenValue));
 		}
 		mustbe(Token.SemiColon);
 
 		Import i = new Import();
-		i.ids = ids.toArray(new String[0]);
+		i.ids = ids.toArray(new Operand[0]);
 		return i;
 	}
 
 	// class id [extends id] [implements id {, id}] { {varDef|funcDef} }
 	/** 解析-类定义 */
-	ClassDef parseClass() {
+	ClassDef parseClassDef() {
 		ClassDef c = new ClassDef();
 		ArrayList<VarDef> vars = new ArrayList<>();
 		ArrayList<FuncDef> funcs = new ArrayList<>();
 
 		mustbe(Token.Identifier);
-		c.id = tokenValue; //类标识
+		c.id = new Operand(token, tokenValue); //类标识
 		//父类标识
 		if (maybe(Token.Extends)) {
 			mustbe(Token.Identifier);
-			c.parentId = tokenValue;
+			c.parentId = new Operand(token, tokenValue);
 		}
 		//接口标识
 		if (maybe(Token.Implements)) {
-			ArrayList<String> ls = new ArrayList<>();
+			ArrayList<Operand> ls = new ArrayList<>();
 			mustbe(Token.Identifier);
-			ls.add(tokenValue);
+			ls.add(new Operand(token, tokenValue));
 			while (maybe(Token.Dot)) {
 				mustbe(Token.Identifier);
-				ls.add(tokenValue);
+				ls.add(new Operand(token, tokenValue));
 			}
-			c.interfaceIds = ls.toArray(new String[0]);
+			c.interfaceIds = ls.toArray(new Operand[0]);
 		}
 		mustbe(Token.BraceL);
 		while (!maybe(Token.BraceR)) {
@@ -297,14 +303,14 @@ class Lexer {
 		ArrayList<VarDef> vs = new ArrayList<>();
 
 		mustbe(Token.Identifier);
-		String type = tokenValue;
+		Operand type = new Operand(token, tokenValue);
 		do {
 			VarDef vd = new VarDef();
 			vd.type = type;
 			mustbe(Token.Identifier);
-			vd.id = tokenValue;
-			if (maybe(Token.Eq)) {
-				vd.value = parseExp();
+			vd.id = new Operand(token, tokenValue);
+			if (maybe(Token.Assign)) {
+				vd.value = parseOpBinary();
 			}
 			vs.add(vd);
 		} while (maybe(Token.Comma));
@@ -320,21 +326,20 @@ class Lexer {
 		ArrayList<VarDef> ps = new ArrayList<>();
 
 		mustbe(Token.Identifier);
-		fd.type = tokenValue;
+		fd.type = new Operand(token, tokenValue);
 		mustbe(Token.Identifier);
-		fd.id = tokenValue;
+		fd.id = new Operand(token, tokenValue);
 		mustbe(Token.ParenL);
-		if (!maybe(Token.ParenR)) {
-			// 参数解析
+		if (!maybe(Token.ParenR)) { //是否无参数
+			// 参数解析 typeid id = exp { , typeid id [= exp]} 
 			do {
 				VarDef vd = new VarDef();
 				mustbe(Token.Identifier);
-				vd.type = tokenValue;
+				vd.type = new Operand(token, tokenValue);
 				mustbe(Token.Identifier);
-				vd.id = tokenValue;
-				if (maybe(Token.Eq)) {
-					vd.value = parseExp();
-				}
+				vd.id = new Operand(token, tokenValue);
+				if (maybe(Token.Assign))
+					vd.value = parseOpBinary();
 				ps.add(vd);
 			} while (maybe(Token.Comma));
 			fd.parameters = ps.toArray(new VarDef[0]);
@@ -350,59 +355,79 @@ class Lexer {
 		Block b = new Block();
 		ArrayList<Ast> vsbe = new ArrayList<>();
 
-		mustbe(Token.BraceL);
-		while (!maybe(Token.BraceR)) {
-			peekToken();
-			if (token == Token.BraceL)
-				vsbe.add(parseBlock());
-			else if (token == Token.If)
-				vsbe.add(parseStmtIf());
-			else if (token == Token.While)
-				vsbe.add(parseStmtWhile());
-			else if (token == Token.Do)
-				vsbe.add(parseStmtDowhile());
-			else if (token == Token.For)
-				vsbe.add(parseStmtFor());
-			else if (token == Token.Continue) {
-				vsbe.add(new StmtContinue());
-				mustbe(Token.SemiColon);
-			} else if (token == Token.Break) {
-				vsbe.add(new StmtBreak());
-				mustbe(Token.SemiColon);
-			} else if (token == Token.Return) {
-				nextToken();
-				Ast exp = null;
-				if (!isbe(Token.SemiColon)) {
-					exp = parseExp();
-					mustbe(Token.SemiColon);
-				}
-				vsbe.add(new StmtReturn(exp));
+		if (maybe(Token.BraceL))
+			while (!maybe(Token.BraceR)) {
+				Object item = parseStmts();
+				if (item instanceof VarDef[])
+					for (VarDef v : (VarDef[]) item)
+						vsbe.add(v);
+				else
+					vsbe.add((Ast) item);
 			}
-			//连续两个为id, 认为是变量定义
-			else if (token == Token.Identifier && isbe(Token.Identifier, 1)) {
-				for (VarDef v : parseVardef())
+		else {
+			Object item = parseStmts();
+			if (item instanceof VarDef[])
+				for (VarDef v : (VarDef[]) item)
 					vsbe.add(v);
-			}
-			//表达式语句
-			else {
-				StmtExp stmtexp = new StmtExp();
-				stmtexp.exp = parseExp();
-				mustbe(Token.SemiColon);
-				vsbe.add(stmtexp);
-			}
+			else
+				vsbe.add((Ast) item);
 		}
-
 		b.vsbe = vsbe.toArray(new Ast[0]);
 		return b;
+	}
 
+	/** 解析每条语句 */
+	Object parseStmts() {
+		peekToken();
+		if (token == Token.BraceL)
+			return parseBlock();
+		else if (token == Token.If)
+			return parseStmtIf();
+		else if (token == Token.While)
+			return parseStmtWhile();
+		else if (token == Token.Do)
+			return parseStmtDowhile();
+		else if (token == Token.For)
+			return parseStmtFor();
+		else if (token == Token.Continue) {
+			mustbe(Token.Continue);
+			mustbe(Token.SemiColon);
+			return new StmtContinue();
+		} else if (token == Token.Break) {
+			mustbe(Token.Break);
+			mustbe(Token.SemiColon);
+			return new StmtBreak();
+		} else if (token == Token.Return) {
+			nextToken();
+			Ast exp = null;
+			if (!isbe(Token.SemiColon)) {
+				exp = parseExp();
+				mustbe(Token.SemiColon);
+			}
+			return new StmtReturn(exp);
+		}
+		//空语句
+		else if (token == Token.SemiColon) {
+			mustbe(Token.SemiColon);
+			return new StmtNull();
+		}
+		//连续两个为id, 认为是变量定义
+		else if (token == Token.Identifier && isbe(Token.Identifier, 1)) {
+			return parseVardef(); //返回数组
+		}
+		//表达式语句
+		StmtExp stmtexp = new StmtExp();
+		stmtexp.exp = parseExp();
+		mustbe(Token.SemiColon);
+		return stmtexp;
 	}
 
 	StmtIf parseStmtIf() {
 		StmtIf ifs = new StmtIf();
 		mustbe(Token.If);
-		mustbe(Token.BrackL);
+		mustbe(Token.ParenL);
 		ifs.cond = parseExp();
-		mustbe(Token.BrackR);
+		mustbe(Token.ParenR);
 		ifs.isTrue = parseBlock();
 		if (maybe(Token.Else))
 			ifs.isFalse = parseBlock();
@@ -412,9 +437,9 @@ class Lexer {
 	StmtWhile parseStmtWhile() {
 		StmtWhile whi = new StmtWhile();
 		mustbe(Token.While);
-		mustbe(Token.BrackL);
+		mustbe(Token.ParenL);
 		whi.cond = parseExp();
-		mustbe(Token.BrackR);
+		mustbe(Token.ParenR);
 		whi.block = parseBlock();
 		return whi;
 	}
@@ -424,22 +449,30 @@ class Lexer {
 		mustbe(Token.Do);
 		dowhi.block = parseBlock();
 		mustbe(Token.While);
-		mustbe(Token.BrackL);
+		mustbe(Token.ParenL);
 		dowhi.cond = parseExp();
-		mustbe(Token.BrackR);
+		mustbe(Token.ParenR);
+		maybe(Token.SemiColon); //dowhile()后的分号可写可不写
 		return dowhi;
 	}
 
+	// for(变量定义 或者 表达式 ; 表达式 ; 表达式) 与 for(变量定义 : 枚举变量)
+	// loop(变量标识符; 初始值(默认0) : 终止值 : 步进值(默认1))
 	StmtFor parseStmtFor() {
 		StmtFor sfor = new StmtFor();
 		mustbe(Token.For);
-		mustbe(Token.BrackL);
-		sfor.init = parseExp();
-		mustbe(Token.SemiColon);
+		mustbe(Token.ParenL);
+		peekToken();
+		if (token == Token.Identifier && isbe(Token.Identifier, 1))
+			sfor.vars = parseVardef();
+		else {
+			sfor.init = parseExp();
+			mustbe(Token.SemiColon);
+		}
 		sfor.cond = parseExp();
 		mustbe(Token.SemiColon);
 		sfor.step = parseExp();
-		mustbe(Token.BrackR);
+		mustbe(Token.ParenR);
 		sfor.block = parseBlock();
 		return sfor;
 	}
@@ -545,7 +578,7 @@ class Lexer {
 				mustbe(Token.Identifier);
 				OperandMember mem = new OperandMember();
 				mem.id = f;
-				mem.idMember = tokenValue;
+				mem.idMember = new Operand(token, tokenValue);
 				f = mem;
 			} else
 				break;
@@ -577,12 +610,23 @@ class Lexer {
 		return null;
 	}
 
+	void showTokens() {
+		Token tt;
+		do {
+			tt = nextToken();
+			System.out.println(tokenValue + " \t:" + tt.toString() + " \t " + idx + "," + lineIdx);
+		} while (tt != Token.End && tt != Token.Error);
+		idx = 0;
+		lineIdx = 1;
+	}
+
 	/** c代码文件生成 */
 	void Trnaslaate() {
 	}
 }
 
 abstract class Ast {
+	/** 词素映射到字符串 */
 	String opCode(Token op) {
 		return Tokens.presetInv.get(op);
 	}
@@ -634,15 +678,15 @@ class OperandIdx extends Ast {
 /** 成员操作符. */
 class OperandMember extends Ast {
 	Ast id;
-	String idMember;
+	Ast idMember;
 
 	void tree(String tab) {
 		id.tree(tab);
-		System.out.println(tab + "." + idMember);
+		System.out.println(tab + "." + idMember.code(tab));
 	}
 
 	String code(String tab) {
-		return id.code(tab) + "." + idMember;
+		return id.code(tab) + "." + idMember.code(tab);
 	}
 }
 
@@ -661,6 +705,8 @@ class Operand extends Ast {
 	}
 
 	String code(String tab) {
+		if (type == Token.StringLiteral)
+			return "\"" + value + "\"";
 		return value;
 	}
 }
@@ -803,34 +849,38 @@ class Program extends Ast {
 
 	String code(String tab) {
 		String out = "file: path\n";
-		for (Import i : imports)
-			out += i.code(tab) + "\n";
-		for (ClassDef c : classes)
-			out += c.code(tab) + "\n";
-		for (InterfaceDef i : interfaces)
-			out += i.code(tab) + "\n";
-		for (EnumDef e : enums)
-			out += e.code(tab) + "\n";
+		if (imports != null)
+			for (Import i : imports)
+				out += i.code(tab) + "\n";
+		if (classes != null)
+			for (ClassDef c : classes)
+				out += c.code(tab) + "\n";
+		if (interfaces != null)
+			for (InterfaceDef i : interfaces)
+				out += i.code(tab) + "\n";
+		if (enums != null)
+			for (EnumDef e : enums)
+				out += e.code(tab) + "\n";
 		return out;
 	}
 }
 
 class Import extends Ast {
-	String[] ids;
+	Operand[] ids;
 
 	void tree(String tab) {
 		int i = 0;
 		System.out.print("import ");
-		for (String id : ids)
-			System.out.print(id + (++i == ids.length ? ";" : "."));
+		for (Operand id : ids)
+			System.out.print(id.value + (++i == ids.length ? ";" : "."));
 		System.out.println();
 	}
 
 	String code(String tab) {
 		String out = "import ";
 		int i = 0;
-		for (String id : ids)
-			out += id + (++i == ids.length ? ";" : ".");
+		for (Operand id : ids)
+			out += (id.value + (++i == ids.length ? ";" : "."));
 		return out;
 	}
 }
@@ -847,25 +897,28 @@ class Block extends Ast {
 	}
 
 	String code(String tab) {
-		String out = "{\n";
+		String out = "\n" + tab + "{\n";
 		for (Ast a : vsbe)
-			out += a.code(tab);
-		out += "\n}";
+			if (a instanceof VarDef)
+				out += tab + "\t" + a.code(tab + "\t") + ";\n";
+			else
+				out += a.code(tab + "\t") + "\n";
+		out += "\n" + tab + "}\n";
 		return out;
 	}
 }
 
 class ClassDef extends Ast {
-	String id;
-	String parentId;
-	String[] interfaceIds;
+	Operand id;
+	Operand parentId; //父类型id
+	Operand[] interfaceIds; //接口类型id
 	VarDef[] vars;
 	FuncDef[] funcs;
 
 	void tree(String tab) {
-		System.out.println(tab + "class " + id);
+		System.out.println(tab + "class " + id.value);
 		if (parentId != null)
-			System.out.println(tab + "\textends " + parentId);
+			System.out.println(tab + "\textends " + parentId.value);
 		System.out.println(tab + "{");
 		for (VarDef v : vars)
 			v.tree(tab + "\t");
@@ -875,12 +928,13 @@ class ClassDef extends Ast {
 	}
 
 	String code(String tab) {
-		String out = "class " + id + (parentId != null ? " extends " + parentId : "") + "{\n";
+		String out = "\nclass " + id.value + (parentId != null ? " extends " + parentId.value : "") + " {\n";
 		for (VarDef v : vars)
-			out += v.code(tab) + "\n";
+			out += tab + "\t" + v.code(tab + "\t") + ";\n";
+		System.out.println();
 		for (FuncDef f : funcs)
-			out += f.code(tab) + "\n";
-		out += "\n}";
+			out += f.code(tab + "\t") + "\n\n";
+		out += "}";
 		return out;
 	}
 }
@@ -894,30 +948,30 @@ class EnumDef extends Ast {
 
 /** 变量定义 */
 class VarDef extends Ast {
-	String id;
-	String type; //变量类型
+	Operand id;
+	Operand type; //变量类型
 	Ast value; //初始化的表达式
 
 	void tree(String tab) {
-		System.out.println(tab + type + " " + id + (value != null ? "=" : ""));
+		System.out.println(tab + type.value + " " + id.value + (value != null ? "=" : ""));
 		if (value != null)
 			value.tree(tab + "\t");
 	}
 
 	String code(String tab) {
-		return type + " " + id + (value != null ? "=" + value.code(tab) : "");
+		return type.value + " " + id.value + (value != null ? "=" + value.code(tab) : "");
 	}
 }
 
 /** 函数定义 */
 class FuncDef extends Ast {
-	String id;
+	Operand id;
 	VarDef[] parameters; //函数参数
-	String type; //返回类型
+	Operand type; //返回类型
 	Block block;
 
 	void tree(String tab) {
-		System.out.println(tab + type + " " + id + "(");
+		System.out.println(tab + type.value + " " + id.value + "(");
 		for (VarDef v : parameters)
 			v.tree(tab + "\t");
 		System.out.println(tab + ")");
@@ -925,7 +979,7 @@ class FuncDef extends Ast {
 	}
 
 	String code(String tab) {
-		String out = tab + type + " " + id + "(";
+		String out = tab + type.value + " " + id.value + "(";
 		int i = 0;
 		for (VarDef v : parameters)
 			out += v.code(tab) + (++i == parameters.length ? "" : ", ");
@@ -968,10 +1022,20 @@ class StmtDowhile extends Ast {
 
 class StmtFor extends Ast {
 	Ast init, cond, step;
+	VarDef[] vars; //所有变量应该为相同类型
 	Block block;
 
 	String code(String tab) {
-		return tab + "for(" + init.code(tab) + "," + cond.code(tab) + "," + step.code(tab) + ")\n" + block.code(tab);
+		String out = tab + "for(";
+		if (init == null) {
+			out += vars[0].type.value + " ";
+			int i = 0;
+			for (VarDef v : vars)
+				out += v.id.value + (v.value != null ? "=" + v.value.code(tab) : "") + (++i == vars.length ? "" : ",");
+		} else
+			out += init.code(tab);
+		out += "; " + cond.code(tab) + "; " + step.code(tab) + ")" + block.code(tab);
+		return out;
 	}
 }
 
@@ -999,51 +1063,18 @@ class StmtReturn extends Ast {
 	}
 }
 
+/** 表达式语句 带分号的表达式 */
 class StmtExp extends Ast {
 	Ast exp;
 
 	String code(String tab) {
-		return tab + exp.code(tab) + " ;";
+		return tab + exp.code(tab) + ";";
 	}
 }
 
-/** 文件管理器(.mc文件解析,转换到.c文件) */
-public class BuildaSimpleInterpreter {
-	public static void main(String[] args) {
-		// String src = "	/*stop //	*/	void main(){int a=1; string s = \"he\'l\\l\'o\"; float f = 3.1415;	}	";
-		// String src = "12312 3.1415  78e12312 9e-1213 9.e12 6.8e90 0e.";
-		// String src = FileUtil.getString("testmc/code.mc");
-		// String src = FileUtil.getString("src/build_a_simple_interpreter/BuildaSimpleInterpreter.java");
-		// String src = FileUtil.getString("src/toc/rulesMc.txt");
-		String src = FileUtil.getString("testmc/lib1/code2.mc");
-
-		Lexer lexer = new Lexer(src);
-
-		// Token tt;
-		// do {
-		// 	tt = lexer.nextToken();
-		// 	System.out.println(lexer.tokenValue + " \t:" + tt.toString() + " \t " + lexer.idx + "," + lexer.lineIdx);
-		// } while (tt != Token.End && tt != Token.Error);
-
-		lexer.idx = 0;
-		// lexer.parseExp().tree("");
-		System.out.println(lexer.parseExp().code(""));
-	}
-}
-
-/* 项目管理器 */
-class Project {
-	public static void main(String[] args) {
-		HashMap<String, String> flags = new HashMap<>();
-		for (String flag : args)
-			flags.put(flag, flag);
-
-		if (flags.containsKey("init")) { //项目路径/ mc.json文件/ cmakelists.txt文件生成
-		}
-		if (flags.containsKey("build")) { //mc文件检索,转换成c
-		}
-		if (flags.containsKey("run")) { //c编译成exe/lib
-		}
-
+/** 空语句 */
+class StmtNull extends Ast {
+	String code(String tab) {
+		return tab + ";";
 	}
 }
