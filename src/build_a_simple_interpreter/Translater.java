@@ -17,6 +17,11 @@ public class Translater {
 		// lexer.parseExp().tree("");
 		// System.out.println(lexer.parseExp().code(""));
 		System.out.println(lexer.parse().code(""));
+
+		// Program ast = (Program) lexer.parse();
+		// System.out.println(ast);
+		// System.out.println(ast.classes.length);
+
 	}
 
 }

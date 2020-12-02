@@ -215,6 +215,7 @@ public class Lexer {
 	public Ast parse() {
 		ArrayList<Import> imports = new ArrayList<>();
 		ArrayList<ClassDef> classes = new ArrayList<>();
+		ArrayList<EnumDef> enums = new ArrayList<>();
 		idx = 0;
 		lineIdx = 1;
 		root = new Program();
@@ -223,12 +224,15 @@ public class Lexer {
 				imports.add(parseImport());
 			else if (maybe(Token.Class))
 				classes.add(parseClassDef());
+			else if (maybe(Token.Enum))
+				enums.add(parseEnumDef());
 			else
 				nextToken();
 		} while (token != Token.End && token != Token.Error);
 
 		root.imports = imports.toArray(new Import[0]);
 		root.classes = classes.toArray(new ClassDef[0]);
+		root.enums = enums.toArray(new EnumDef[0]);
 		return root;
 	}
 
@@ -295,6 +299,27 @@ public class Lexer {
 		c.vars = vars.toArray(new VarDef[0]);
 		c.funcs = funcs.toArray(new FuncDef[0]);
 		return c;
+	}
+
+	// enum id { (id = num ,) }
+	/** 解析枚举定义 */
+	EnumDef parseEnumDef() {
+		EnumDef e = new EnumDef();
+		mustbe(Token.Identifier);
+		e.id = new Operand(token, tokenValue);
+		ArrayList<EnumItem> items = new ArrayList<>();
+		mustbe(Token.BraceL);
+		while (!maybe(Token.BraceR)) {
+			EnumItem item = new EnumItem();
+			mustbe(Token.Identifier);
+			item.id = new Operand(token, tokenValue);
+			if (maybe(Token.Assign))
+				item.value = parseOpBinary();
+			mustbe(Token.Comma); //每项后必须有逗号, 包括最后一项
+			items.add(item);
+		}
+		e.items = items.toArray(new EnumItem[0]);
+		return e;
 	}
 
 	// type id [= exp] {, id [= exp]} ;
@@ -944,6 +969,21 @@ class InterfaceDef extends Ast {
 }
 
 class EnumDef extends Ast {
+	Operand id;
+	EnumItem[] items;
+
+	String code(String tab) {
+		String out = tab + "enum " + id.value + " {\n";
+		for (EnumItem i : items)
+			out += tab + "\t" + i.id.value + (i.value != null ? " = " + i.value.code(tab) : "") + ",\n";
+		out += tab + "}\n";
+		return out;
+	}
+}
+
+class EnumItem {
+	Operand id;
+	Ast value;
 }
 
 /** 变量定义 */

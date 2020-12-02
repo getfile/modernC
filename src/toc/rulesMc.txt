@@ -33,6 +33,7 @@ interfaceDef
 	interface id [extends id {, id}] { {type id ( [parameter] ) ;} }
 
 //枚举类型定义
+//枚举值最终为整形, 不同的id允许相同的值, 可能会溢出
 enumDef
 	enum id { (id = num ,) }
 	

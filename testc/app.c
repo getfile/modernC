@@ -45,6 +45,11 @@ void B_say(B* obj) { }
 
 void main(int num, char* args)
 {
+	enum Color eyeColor = black;
+	printf("your eye color: %d\n", eyeColor);
+	printf("enum Color: %d, %d, %d, %d, %d\n", red, green, blue, black, white);
+
+
 	printf("ok\n");
 	colorBlend(1, 2, 0.5);
 

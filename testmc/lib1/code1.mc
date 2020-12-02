@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+enum Color{
+	red, blue, green=10, black,
+}
 class App{}
 class Main extends App {
 	int a;
